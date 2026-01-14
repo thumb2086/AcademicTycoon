@@ -5,13 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.academictycoon.data.local.model.UserProfile
 import com.example.academictycoon.data.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class FinanceViewModel(private val userRepository: UserRepository) : ViewModel() {
+@HiltViewModel
+class FinanceViewModel @Inject constructor(private val userRepository: UserRepository) : ViewModel() {
 
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
@@ -57,10 +59,10 @@ class FinanceViewModel(private val userRepository: UserRepository) : ViewModel()
             }
         }
     }
-    
+
     fun takeLoan(amount: Long) {
         viewModelScope.launch {
-            val currentUser = _user_profile.value ?: return@launch
+            val currentUser = _userProfile.value ?: return@launch
             val updatedProfile = currentUser.copy(debt = currentUser.debt + amount, balance = currentUser.balance + amount)
             userRepository.updateUserProfile(updatedProfile)
         }
