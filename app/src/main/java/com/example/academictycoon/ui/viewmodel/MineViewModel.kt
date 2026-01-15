@@ -33,6 +33,7 @@ class MineViewModel @Inject constructor(
         }
     }
 
+    @Suppress("unused")
     fun loadQuestionsFromUrl(url: String) {
         viewModelScope.launch {
             _questions.value = questionRepository.getQuestions(true, url)
