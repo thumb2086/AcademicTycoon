@@ -23,12 +23,19 @@ class MineViewModel @Inject constructor(
     val currentQuestionIndex: StateFlow<Int> = _currentQuestionIndex.asStateFlow()
 
     init {
-        loadQuestions(true) // Initially load from network
+        loadQuestions(false) // Initially load from local cache
     }
 
     fun loadQuestions(isOnline: Boolean) {
         viewModelScope.launch {
             _questions.value = questionRepository.getQuestions(isOnline)
+            _currentQuestionIndex.value = 0
+        }
+    }
+
+    fun loadQuestionsFromUrl(url: String) {
+        viewModelScope.launch {
+            _questions.value = questionRepository.getQuestions(true, url)
             _currentQuestionIndex.value = 0
         }
     }

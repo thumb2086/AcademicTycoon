@@ -3,17 +3,17 @@ package com.example.academictycoon.data.repository
 import android.util.Log
 import com.example.academictycoon.data.local.dao.QuestionDao
 import com.example.academictycoon.data.local.model.Question
-import com.example.academictycoon.network.ApiService
+import com.example.academictycoon.data.network.ApiService
 
 class QuestionRepository(
     private val apiService: ApiService,
     private val questionDao: QuestionDao
 ) {
 
-    suspend fun getQuestions(isOnline: Boolean): List<Question> {
+    suspend fun getQuestions(isOnline: Boolean, url: String = ""): List<Question> {
         return if (isOnline) {
             try {
-                val questionBundle = apiService.getQuestionBundle("some-url") // Pass a valid URL
+                val questionBundle = apiService.getQuestions(url) // Pass a valid URL
                 questionDao.deleteAll()
                 questionDao.insertAll(questionBundle.questions)
                 questionBundle.questions
