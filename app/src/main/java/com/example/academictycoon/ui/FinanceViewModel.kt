@@ -56,6 +56,16 @@ class FinanceViewModel @Inject constructor(
             _userProfile.value = updatedProfile
         }
     }
+
+    fun deductBet(amount: Long) {
+        viewModelScope.launch {
+            val currentProfile = _userProfile.value ?: return@launch
+
+            val updatedProfile = currentProfile.copy(balance = currentProfile.balance - amount)
+            userProfileDao.insertOrUpdate(updatedProfile)
+            _userProfile.value = updatedProfile
+        }
+    }
     
     fun borrow(amount: Long) {
         viewModelScope.launch {

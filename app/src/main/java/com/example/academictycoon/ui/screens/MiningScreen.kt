@@ -12,11 +12,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.academictycoon.data.local.model.Question
 import com.example.academictycoon.ui.FinanceViewModel
-import com.example.academictycoon.ui.MiningViewModel
+import com.example.academictycoon.ui.viewmodel.MineViewModel
 
 @Composable
 fun MiningScreen(
-    miningViewModel: MiningViewModel = hiltViewModel(),
+    miningViewModel: MineViewModel = hiltViewModel(),
     financeViewModel: FinanceViewModel = hiltViewModel()
 ) {
     val questions by miningViewModel.questions.collectAsState()
@@ -24,8 +24,8 @@ fun MiningScreen(
 
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(questions) { question ->
-            QuestionCard(question = question) {
-                if (it == question.a) {
+            QuestionCard(question = question) { isCorrect ->
+                if (isCorrect) {
                     financeViewModel.processReward(question.reward)
                 }
                 showDialog = question
@@ -49,7 +49,7 @@ fun MiningScreen(
 }
 
 @Composable
-fun QuestionCard(question: Question, onOptionSelected: (Int) -> Unit) {
+fun QuestionCard(question: Question, onOptionSelected: (Boolean) -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             if (question.image_url.isNotBlank()) {
@@ -69,7 +69,7 @@ fun QuestionCard(question: Question, onOptionSelected: (Int) -> Unit) {
                     text = "${index + 1}. $option",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onOptionSelected(index) }
+                        .clickable { onOptionSelected(index == question.a) }
                         .padding(vertical = 8.dp)
                 )
             }

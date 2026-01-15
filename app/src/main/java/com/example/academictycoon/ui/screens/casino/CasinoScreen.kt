@@ -46,7 +46,12 @@ fun CasinoScreen(
             }
         } else if (uiState.gameState == GameState.BETTING) {
             Button(onClick = {
-                userProfile?.let { casinoViewModel.placeBet(it) { amount -> financeViewModel.processReward(amount.toInt()) } }
+                userProfile?.let { profile ->
+                    if (profile.balance >= uiState.betAmount) {
+                        financeViewModel.deductBet(uiState.betAmount)
+                        casinoViewModel.placeBet(profile) { /* The financial transaction is now handled by the screen */ }
+                    }
+                }
             }) {
                 Text("Place Bet: ${uiState.betAmount}")
             }
