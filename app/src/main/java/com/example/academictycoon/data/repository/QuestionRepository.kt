@@ -10,10 +10,10 @@ class QuestionRepository(
     private val questionDao: QuestionDao
 ) {
 
-    suspend fun getQuestions(isOnline: Boolean, url: String = "https://raw.githubusercontent.com/redcarrottt/AcademicTycoon/main/app/src/main/assets/bundle.json"): List<Question> {
+    suspend fun getQuestions(isOnline: Boolean, url: String = "https://raw.githubusercontent.com/thumb2086/AcademicTycoon/main/app/src/main/assets/bundle.json"): List<Question> {
         return if (isOnline) {
             try {
-                val questionBundle = apiService.getQuestions(url) // Pass a valid URL
+                val questionBundle = apiService.getQuestions(url)
                 questionDao.deleteAll()
                 questionDao.insertAll(questionBundle.questions)
                 questionBundle.questions
