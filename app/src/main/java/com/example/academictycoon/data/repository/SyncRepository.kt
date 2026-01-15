@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.example.academictycoon.data.local.dao.QuestionDao
-import com.example.academictycoon.network.ApiService
+import com.example.academictycoon.data.network.ApiService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -17,7 +17,7 @@ class SyncRepository @Inject constructor(
     suspend fun syncQuestions(url: String) {
         if (isNetworkAvailable()) {
             try {
-                val bundle = apiService.getQuestionBundle(url)
+                val bundle = apiService.getQuestions(url)
                 questionDao.clearAndInsert(bundle.questions) // Clear old questions before inserting new ones
             } catch (e: Exception) {
                 // Handle network error, e.g., by logging

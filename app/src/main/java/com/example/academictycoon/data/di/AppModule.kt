@@ -7,7 +7,7 @@ import com.example.academictycoon.data.local.dao.QuestionDao
 import com.example.academictycoon.data.local.dao.UserProfileDao
 import com.example.academictycoon.data.repository.QuestionRepository
 import com.example.academictycoon.data.repository.UserRepository
-import com.example.academictycoon.network.ApiService
+import com.example.academictycoon.data.network.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
