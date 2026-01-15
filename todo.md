@@ -23,6 +23,11 @@
         - [x] 繪製 21 點遊戲介面，包括玩家/莊家手牌、下注按鈕。
         - [x] 實作 21 點核心遊戲邏輯 (發牌、要牌、停牌、結算)。
 
+- [x] 軟體用 tag 觸發自動建置流程
+    - [x] GitHub Actions workflow 優化：push tag v* 時自動 build signed APK → 建立 Release → 上傳 APK asset。
+    - [x] 整合熱更新檢查：App 內 GET /releases/latest API → 比對 versionCode → 提示下載新 APK。
+    - [x] Release 說明：加 APK checksum + 安裝教學截圖。
+
 - [ ] 核心邏輯驗證
     - [ ] 匯入測試題庫：確保 SyncRepository 能成功從 GitHub 下載並寫入「機械原理」題庫到 Room。
     - [ ] 還債邏輯測試：模擬負債情況，驗證 FinanceViewModel 是否精確地將 80% 的收益用於還債。
@@ -63,10 +68,6 @@
     - [ ] 測試：模擬 100 次 spin，驗證 house edge 接近設定值 + 遊戲平衡。
 
 ### v0.6: 發布與優化
-- [ ] 軟體用 tag 觸發自動建置流程
-    - [ ] GitHub Actions workflow 優化：push tag v* 時自動 build signed APK → 建立 Release → 上傳 APK asset。
-    - [ ] 整合熱更新檢查：App 內 GET /releases/latest API → 比對 versionCode → 提示下載新 APK。
-    - [ ] Release 說明：加 APK checksum + 安裝教學截圖。
 
 ### v0.7: 後台管理系統（整合 Firebase） - 管理員權限、後台調整參數、查看玩家紀錄
 - [ ] 建立 Firebase 專案並整合到 App
