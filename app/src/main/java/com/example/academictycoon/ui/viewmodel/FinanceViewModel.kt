@@ -1,4 +1,3 @@
-
 package com.example.academictycoon.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -20,14 +19,12 @@ class FinanceViewModel @Inject constructor(private val userRepository: UserRepos
 
     init {
         viewModelScope.launch {
-            userRepository.getUserProfile().collect {
-                _userProfile.value = it
-                if (it == null) {
-                    // Initialize a default profile if none exists
-                    val defaultProfile = UserProfile(balance = 1000, debt = 0, correct_count = 0, rank = "學術難民")
-                    userRepository.updateUserProfile(defaultProfile)
-                }
+            var user = userRepository.getUserProfile()
+            if (user == null) {
+                user = UserProfile(balance = 1000, debt = 0, correct_count = 0, rank = "學術難民")
+                userRepository.updateUserProfile(user)
             }
+            _userProfile.value = user
         }
     }
 
@@ -45,26 +42,21 @@ class FinanceViewModel @Inject constructor(private val userRepository: UserRepos
                     val newBalance = currentUser.balance + pocket + -remainingDebt
                     val updatedProfile = currentUser.copy(balance = newBalance, debt = 0)
                     userRepository.updateUserProfile(updatedProfile)
+                    _userProfile.value = updatedProfile
                 } else {
                     // Still in debt
                     val newBalance = currentUser.balance + pocket
                     val updatedProfile = currentUser.copy(balance = newBalance, debt = remainingDebt)
                     userRepository.updateUserProfile(updatedProfile)
+                    _userProfile.value = updatedProfile
                 }
             } else {
                 // No debt, full reward goes to balance
                 val newBalance = currentUser.balance + reward
                 val updatedProfile = currentUser.copy(balance = newBalance)
                 userRepository.updateUserProfile(updatedProfile)
+                _userProfile.value = updatedProfile
             }
-        }
-    }
-
-    fun takeLoan(amount: Long) {
-        viewModelScope.launch {
-            val currentUser = _userProfile.value ?: return@launch
-            val updatedProfile = currentUser.copy(debt = currentUser.debt + amount, balance = currentUser.balance + amount)
-            userRepository.updateUserProfile(updatedProfile)
         }
     }
 }
