@@ -23,7 +23,7 @@ class MineViewModel @Inject constructor(
     val currentQuestionIndex: StateFlow<Int> = _currentQuestionIndex.asStateFlow()
 
     init {
-        loadQuestions(true) // Initially load from network
+        loadQuestions(false) // Initially load from local cache
     }
 
     fun loadQuestions(isOnline: Boolean) {
