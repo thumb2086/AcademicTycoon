@@ -23,30 +23,36 @@ class MineViewModel @Inject constructor(
     val currentQuestionIndex: StateFlow<Int> = _currentQuestionIndex.asStateFlow()
 
     init {
-        loadQuestions(true) // Initially load from network
+        loadLocalQuestions()
     }
 
-    fun loadQuestions(isOnline: Boolean) {
+    // 改名：專門負責從本地資料庫讀取
+    fun loadLocalQuestions() {
         viewModelScope.launch {
-            _questions.value = questionRepository.getQuestions(isOnline)
+            // 修正：使用新的 getAllQuestions 方法
+            _questions.value = questionRepository.getAllQuestions()
+            // 如果列表不為空，重置索引，否則保持 0
             _currentQuestionIndex.value = 0
         }
     }
 
-    @Suppress("unused")
+    // 負責從網路下載指定科目的題目
     fun loadQuestionsFromUrl(url: String) {
         viewModelScope.launch {
-            _questions.value = questionRepository.getQuestions(true, url)
+            // 1. 先下載並同步到資料庫 (使用新的 syncQuestions 方法)
+            questionRepository.syncQuestions(url)
+
+            // 2. 下載完成後，從資料庫重新讀取最新資料
+            _questions.value = questionRepository.getAllQuestions()
             _currentQuestionIndex.value = 0
         }
     }
 
     fun nextQuestion() {
-        if (_currentQuestionIndex.value < _questions.value.size - 1) {
+        if (_questions.value.isNotEmpty() && _currentQuestionIndex.value < _questions.value.size - 1) {
             _currentQuestionIndex.value++
         } else {
-            // Handle case where there are no more questions, e.g., show a message or reload
-            // For now, let's just loop back to the start
+            // 循環回到第一題，或者你可以在這裡處理結束邏輯
             _currentQuestionIndex.value = 0
         }
     }

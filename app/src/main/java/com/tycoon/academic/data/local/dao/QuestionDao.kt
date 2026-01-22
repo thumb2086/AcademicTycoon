@@ -9,19 +9,18 @@ import com.tycoon.academic.data.local.model.Question
 
 @Dao
 interface QuestionDao {
+    @Query("SELECT * FROM questions") // 確保 table 名稱跟你的 Entity 定義一致
+    suspend fun getAllQuestions(): List<Question>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(questions: List<Question>)
 
-    @Query("SELECT * FROM questions")
-    suspend fun getAllQuestions(): List<Question>
-
     @Query("DELETE FROM questions")
-    suspend fun deleteAll()
+    suspend fun clearAll()
 
     @Transaction
     suspend fun clearAndInsert(questions: List<Question>) {
-        deleteAll()
+        clearAll()
         insertAll(questions)
     }
 }

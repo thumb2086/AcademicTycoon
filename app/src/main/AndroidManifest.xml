@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tycoon.academic"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".AcademicTycoonApplication"
+        android:name="com.tycoon.academic.AcademicTycoonApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,14 +16,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AcademicTycoon"
-        android.usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"> <!-- 這裡修正了點改冒號 -->
+
         <activity
-            android:name=".MainActivity"
+            android:name="com.tycoon.academic.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AcademicTycoon">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

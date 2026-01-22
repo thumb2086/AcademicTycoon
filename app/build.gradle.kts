@@ -10,12 +10,17 @@ plugins {
 }
 
 android {
+    // 註解掉這段，避免尋找不存在的屬性文件
+    /*
     val keystorePropertiesFile = rootProject.file("keystore.properties")
     val keystoreProperties = Properties()
     if (keystorePropertiesFile.exists()) {
         keystoreProperties.load(FileInputStream(keystorePropertiesFile))
     }
+    */
 
+    // 註解掉自定義的簽署配置，讓系統使用預設的 Debug 配置
+    /*
     signingConfigs {
         create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias")
@@ -24,14 +29,15 @@ android {
             storePassword = keystoreProperties.getProperty("storePassword")
         }
     }
+    */
 
     namespace = "com.tycoon.academic"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.tycoon.academic"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -45,7 +51,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            // 註解掉這一行，這行是導致「Missing keystore」的主因
+            // signingConfig = signingConfigs.getByName("release")
         }
     }
 
