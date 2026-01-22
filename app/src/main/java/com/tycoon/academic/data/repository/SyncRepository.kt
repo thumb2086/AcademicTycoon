@@ -6,15 +6,15 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import com.tycoon.academic.data.local.dao.QuestionDao
 import com.tycoon.academic.data.network.ApiService
-import com.tycoon.academic.data.network.AppConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.tycoon.academic.data.network.AppConfig // 增加這一行
 
-@Singleton // Hold the config state for the app's lifecycle
+@Singleton
 class SyncRepository @Inject constructor(
     private val apiService: ApiService,
     private val questionDao: QuestionDao,
@@ -40,15 +40,18 @@ class SyncRepository @Inject constructor(
             println("No network connection, skipping question sync.")
             return
         }
-        
+
         val remoteConfig = appConfig.value ?: return
-        val remoteVersion = remoteConfig.bundle_version
+
+        // --- 修正點：將 snake_case 改為 camelCase ---
+        val remoteVersion = remoteConfig.bundleVersion // 修正: bundle_version -> bundleVersion
         val localVersion = preferencesRepository.bundleVersion.first()
 
         if (remoteVersion > localVersion) {
             Log.d("SyncRepository", "New bundle version found: $remoteVersion. Local was: $localVersion. Syncing...")
             try {
-                val bundle = apiService.getQuestions(remoteConfig.bundle_url)
+                // --- 修正點：將 snake_case 改為 camelCase ---
+                val bundle = apiService.getQuestions(remoteConfig.bundleUrl) // 修正: bundle_url -> bundleUrl
                 questionDao.clearAndInsert(bundle.questions)
                 preferencesRepository.updateBundleVersion(remoteVersion)
                 Log.d("SyncRepository", "Sync successful.")

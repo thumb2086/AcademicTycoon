@@ -23,7 +23,7 @@ class MiningViewModel @Inject constructor(
 
     fun loadQuestionsFromUrl(url: String) {
         viewModelScope.launch {
-            syncRepository.syncQuestions(url)
+            syncRepository.syncQuestions()
             _questions.value = questionDao.getAllQuestions()
         }
     }

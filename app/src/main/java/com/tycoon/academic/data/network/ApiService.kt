@@ -15,7 +15,10 @@ data class CasinoOdds(
     @SerializedName("reward_multiplier") val rewardMultiplier: Double
 )
 
+// 合併所有欄位的 AppConfig
 data class AppConfig(
+    @SerializedName("bundle_version") val bundleVersion: Int,    // 補上 SyncRepository 需要的
+    @SerializedName("bundle_url") val bundleUrl: String,        // 補上 SyncRepository 需要的
     @SerializedName("question_bundle_url") val questionBundleUrl: String,
     @SerializedName("casino_odds") val casinoOdds: CasinoOdds
 )
