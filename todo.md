@@ -28,52 +28,52 @@
     - [x] 整合熱更新檢查：App 內 GET /releases/latest API → 比對 versionCode → 提示下載新 APK。
     - [x] Release 說明：加 APK checksum + 安裝教學截圖。
 
-- [ ] 核心邏輯驗證
-    - [ ] 匯入測試題庫：確保 SyncRepository 能成功從 GitHub 下載並寫入「機械原理」題庫到 Room。
-    - [ ] 還債邏輯測試：模擬負債情況，驗證 FinanceViewModel 是否精確地將 80% 的收益用於還債。
+- [x] 核心邏輯驗證
+    - [x] 匯入測試題庫：確保 SyncRepository 能成功從 GitHub 下載並寫入「機械原理」題庫到 Room。
+    - [x] 還債邏輯測試：模擬負債情況，驗證 FinanceViewModel 是否精確地將 80% 的收益用於還債。
 
 ## 未來擴充規劃 (Roadmap)
 
 ### v0.3: 動態與多樣化
-- [ ] 雲端賠率系統：
-    - [ ] 擴充 config.json，加入賭場賠率欄位。
-    - [ ] FinanceViewModel 或相關模組讀取此賠率，並應用於賭場勝負結算。
-- [ ] 多學科支持：
-    - [ ] 在 UI 中加入 Spinner 或 DropdownMenu 讓玩家選擇題庫。
-    - [ ] 修改 SyncRepository 以根據玩家選擇下載不同的 bundle.json (例如 mechanical.json, highschool.json)。
-- [ ] 考題資料集自動下載熱更新
-    - [ ] bundle.json 格式定義：包含 id, subject, q, options, a, reward, explanation, image_url 等欄位。
-    - [ ] SyncRepository 擴充：App 啟動或背景時，Retrofit GET bundle.json → 比對 local version → 清空舊 Question table → insert 新資料。
-    - [ ] 分科別 JSON 支持（e.g., mech_bundle.json），並在 UI 選擇時動態下載。
+- [x] 雲端賠率系統：
+    - [x] 擴充 config.json，加入賭場賠率欄位。
+    - [x] FinanceViewModel 或相關模組讀取此賠率，並應用於賭場勝負結算。
+- [x] 多學科支持：
+    - [x] 在 UI 中加入 Spinner 或 DropdownMenu 讓玩家選擇題庫。
+    - [x] 修改 SyncRepository 以根據玩家選擇下載不同的 bundle.json (例如 mechanical.json, highschool.json)。
+- [x] 考題資料集自動下載熱更新
+    - [x] bundle.json 格式定義：包含 id, subject, q, options, a, reward, explanation, image_url 等欄位。
+    - [x] SyncRepository 擴充：App 啟動或背景時，Retrofit GET bundle.json → 比對 local version → 清空舊 Question table → insert 新資料。
+    - [x] 分科別 JSON 支持（e.g., mech_bundle.json），並在 UI 選擇時動態下載。
 
 ### v0.4: 內容增強
-- [ ] 題目圖片顯示：在 QuestionCard 中使用 Coil 加載並顯示 image_url 對應的圖片。
-- [ ] 成就系統 UI：
-    - [ ] 建立一個畫面，根據 userProfile.correct_count 顯示對應的頭銜 (學術難民 -> 工科兵 -> 首席機械師)。
+- [x] 題目圖片顯示：在 QuestionCard 中使用 Coil 加載並顯示 image_url 對應的圖片。
+- [x] 成就系統 UI：
+    - [x] 建立一個畫面，根據 userProfile.correct_count 顯示對應的頭銜 (學術難民 -> 工科兵 -> 首席機械師)。
 
 ### v0.5: 背景功能與賭場擴充
-- [ ] 背景功能（後台）
-    - [ ] 用 WorkManager 設定背景任務：每 1-24 小時檢查 GitHub config.json / bundle.json version。
-    - [ ] 任務邏輯：呼叫 Retrofit 下載新版 → 更新 Room 題庫 / 設定（僅 WiFi 時執行）。
-    - [ ] 負債背景累積（選項）：如果有利息，每小時 debt += debt * 0.01。
-- [ ] 機率熱更新發布自動化流程
-    - [ ] config.json 擴充：加 "casino_probs" 物件（e.g., {"blackjack_house_edge": 0.05, "roulette_house_edge": 2.7, "reward_multiplier": 1.5}）。
-    - [ ] SyncRepository：下載後解析並套用到 FinanceViewModel / 賭場邏輯。
-    - [ ] 發布自動化：GitHub Actions – push main 時，自動 commit 新 config.json，或手動 upload 觸發 App 熱更新。
-- [ ] 賭場輪盤模式（純運氣補充 21 點）
-    - [ ] 輪盤 UI：Compose Canvas 畫輪盤（0-36，紅黑交替） + 簡單旋轉動畫 + 結果顯示。
-    - [ ] 投注選項：紅/黑、單/雙、1-18/19-36、單號 (Straight up)。
-    - [ ] 輪盤邏輯：隨機產生 0-36，計算 payout（從 config.json 讀 house edge / 賠率）。
-    - [ ] 整合 FinanceViewModel：下注扣款、贏錢加款（適用 80/20 還債規則）。
-    - [ ] 測試：模擬 100 次 spin，驗證 house edge 接近設定值 + 遊戲平衡。
+- [x] 背景功能（後台）
+    - [x] 用 WorkManager 設定背景任務：每 1-24 小時檢查 GitHub config.json / bundle.json version。
+    - [x] 任務邏輯：呼叫 Retrofit 下載新版 → 更新 Room 題庫 / 設定（僅 WiFi 時執行）。
+    - [x] 負債背景累積（選項）：如果有利息，每小時 debt += debt * 0.01。
+- [x] 機率熱更新發布自動化流程
+    - [x] config.json 擴充：加 "casino_probs" 物件（e.g., {"blackjack_house_edge": 0.05, "roulette_house_edge": 2.7, "reward_multiplier": 1.5}）。
+    - [x] SyncRepository：下載後解析並套用到 FinanceViewModel / 賭場邏輯。
+    - [x] 發布自動化：GitHub Actions – push main 時，自動 commit 新 config.json，或手動 upload 觸發 App 熱更新。
+- [x] 賭場輪盤模式（純運氣補充 21 點）
+    - [x] 輪盤 UI：Compose Canvas 畫輪盤（0-36，紅黑交替） + 簡單旋轉動畫 + 結果顯示。
+    - [x] 投注選項：紅/黑、單/雙、1-18/19-36、單號 (Straight up)。
+    - [x] 輪盤邏輯：隨機產生 0-36，計算 payout（從 config.json 讀 house edge / 賠率）。
+    - [x] 整合 FinanceViewModel：下注扣款、贏錢加款（適用 80/20 還債規則）。
+    - [x] 測試：模擬 100 次 spin，驗證 house edge 接近設定值 + 遊戲平衡。
 
 ### v0.6: 發布與優化
 
 ### v0.7: 後台管理系統（整合 Firebase） - 管理員權限、後台調整參數、查看玩家紀錄
-- [ ] 建立 Firebase 專案並整合到 App
-    - [ ] 去 https://console.firebase.google.com 建立新專案，註冊 Android App（輸入 package name），下載 google-services.json 放 app/ 目錄。
-    - [ ] 在 project-level build.gradle.kts 加 Google Services plugin。
-    - [ ] 在 app/build.gradle.kts 加 Firebase BoM + 必要 SDK（firebase-auth, firebase-firestore, firebase-remote-config, firebase-analytics）。
+- [x] 建立 Firebase 專案並整合到 App
+    - [x] 去 https://console.firebase.google.com 建立新專案，註冊 Android App（輸入 package name），下載 google-services.json 放 app/ 目錄。
+    - [x] 在 project-level build.gradle.kts 加 Google Services plugin。
+    - [x] 在 app/build.gradle.kts 加 Firebase BoM + 必要 SDK（firebase-auth, firebase-firestore, firebase-remote-config, firebase-analytics）。
     - [ ] 在 Application class 或 MainActivity 初始化 FirebaseApp。
 
 - [ ] 玩家登入與資料雲端化

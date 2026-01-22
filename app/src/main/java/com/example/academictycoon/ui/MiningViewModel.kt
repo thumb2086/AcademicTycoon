@@ -8,6 +8,7 @@ import com.example.academictycoon.data.repository.SyncRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,21 +19,13 @@ class MiningViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _questions = MutableStateFlow<List<Question>>(emptyList())
-    val questions: StateFlow<List<Question>> = _questions
+    val questions: StateFlow<List<Question>> = _questions.asStateFlow()
 
     init {
-        loadQuestions()
-    }
-
-    private fun loadQuestions() {
         viewModelScope.launch {
-            var questionsFromDb = questionDao.getAllQuestions()
-            if (questionsFromDb.isEmpty()) {
-                // Using the repository from the project plan. The user should replace with the actual URL.
-                syncRepository.syncQuestions("https://raw.githubusercontent.com/user/repo/main/bundle.json")
-                questionsFromDb = questionDao.getAllQuestions()
-            }
-            _questions.value = questionsFromDb
+            syncRepository.syncConfig()
+            syncRepository.syncQuestions()
+            _questions.value = questionDao.getAllQuestions()
         }
     }
 }

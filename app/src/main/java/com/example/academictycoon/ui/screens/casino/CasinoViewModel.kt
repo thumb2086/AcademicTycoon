@@ -1,7 +1,6 @@
 package com.example.academictycoon.ui.screens.casino
 
 import androidx.lifecycle.ViewModel
-import com.example.academictycoon.data.local.model.UserProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,12 +26,8 @@ class CasinoViewModel @Inject constructor() : ViewModel() {
 
     private val deck = Deck()
 
-    fun placeBet(userProfile: UserProfile, onBetPlaced: (Long) -> Unit) {
-        val bet = _uiState.value.betAmount
-        if (userProfile.balance >= bet) {
-            onBetPlaced(-bet) // Deduct bet from balance
-            startNewGame()
-        }
+    fun placeBet() {
+        startNewGame()
     }
 
     private fun startNewGame() {
@@ -54,7 +49,7 @@ class CasinoViewModel @Inject constructor() : ViewModel() {
 
     fun hit() {
         if (_uiState.value.gameState != GameState.PLAYER_TURN) return
-        
+
         val newPlayerHand = _uiState.value.playerHand.toMutableList().apply { add(deck.drawCard()) }
         _uiState.value = _uiState.value.copy(playerHand = newPlayerHand)
 
@@ -86,22 +81,12 @@ class CasinoViewModel @Inject constructor() : ViewModel() {
         val result = when {
             dealerValue > 21 -> "Dealer Busts! You Win!"
             playerValue > dealerValue -> "You Win!"
-            dealerValue > playerValue -> "You Lose!"
-            else -> "Push!"
+            dealerValue == playerValue -> "Push!"
+            else -> "You Lose!"
         }
         _uiState.value = _uiState.value.copy(gameResult = result, gameState = GameState.GAME_OVER)
     }
-    
-    fun getWinnings(): Long {
-        val result = _uiState.value.gameResult
-        val bet = _uiState.value.betAmount
-        return when {
-            result.contains("You Win") -> bet * 2
-            result.contains("Push") -> bet
-            else -> 0
-        }
-    }
-    
+
     fun endRound() {
         _uiState.value = _uiState.value.copy(gameState = GameState.BETTING)
     }

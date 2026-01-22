@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Academic Tycoon</string>
+
+    <!-- Black Market Screen -->
+    <string name="black_market_bank">Black Market Bank</string>
+    <string name="current_assets">Assets: %1$s</string>
+    <string name="current_debt">Debt: %1$s</string>
+    <string name="need_cash">Need some cash?</string>
+    <string name="borrow_amount">Borrow %1$s</string>
+    <string name="wanna_repay">Wanna repay?</string>
+    <string name="repay_amount">Repayment Amount</string>
+    <string name="confirm_repayment">Confirm Repayment</string>
+</resources>

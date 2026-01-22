@@ -9,28 +9,81 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.academictycoon.data.local.model.Question
 import com.example.academictycoon.ui.FinanceViewModel
-import com.example.academictycoon.ui.viewmodel.MineViewModel
+import com.example.academictycoon.ui.MiningViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiningScreen(
-    miningViewModel: MineViewModel = hiltViewModel(),
+    miningViewModel: MiningViewModel = hiltViewModel(),
     financeViewModel: FinanceViewModel = hiltViewModel()
 ) {
-    val questions by miningViewModel.questions.collectAsState()
+    val questions by miningViewModel.questions.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf<Question?>(null) }
 
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        items(questions) { question ->
-            QuestionCard(question = question) { isCorrect ->
-                if (isCorrect) {
-                    financeViewModel.processReward(question.reward)
+    // Subject Selection
+    val subjects = mapOf(
+        "Mechanical" to "https://raw.githubusercontent.com/thumb2086/AcademicTycoon/main/app/src/main/assets/mechanical.json",
+        "High School" to "https://raw.githubusercontent.com/thumb2086/AcademicTycoon/main/app/src/main/assets/highschool.json"
+    )
+    var selectedSubject by remember { mutableStateOf("Mechanical") }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+
+    // Load questions when the selected subject changes
+    LaunchedEffect(selectedSubject) {
+        subjects[selectedSubject]?.let { url ->
+            miningViewModel.loadQuestionsFromUrl(url)
+        }
+    }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        // Dropdown Menu
+        ExposedDropdownMenuBox(
+            expanded = isDropdownExpanded,
+            onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+        ) {
+            OutlinedTextField(
+                value = selectedSubject,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Select Subject") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = isDropdownExpanded,
+                onDismissRequest = { isDropdownExpanded = false }
+            ) {
+                subjects.keys.forEach { subjectName ->
+                    DropdownMenuItem(
+                        text = { Text(subjectName) },
+                        onClick = {
+                            selectedSubject = subjectName
+                            isDropdownExpanded = false
+                        }
+                    )
                 }
-                showDialog = question
             }
-            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Questions List
+        LazyColumn {
+            items(questions) { question ->
+                QuestionCard(question = question) { isCorrect ->
+                    if (isCorrect) {
+                        financeViewModel.processReward(question.reward)
+                    }
+                    showDialog = question
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 

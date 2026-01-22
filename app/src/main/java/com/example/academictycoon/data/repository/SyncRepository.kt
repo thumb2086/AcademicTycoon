@@ -3,29 +3,60 @@ package com.example.academictycoon.data.repository
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.util.Log
 import com.example.academictycoon.data.local.dao.QuestionDao
 import com.example.academictycoon.data.network.ApiService
+import com.example.academictycoon.data.network.AppConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton // Hold the config state for the app's lifecycle
 class SyncRepository @Inject constructor(
     private val apiService: ApiService,
     private val questionDao: QuestionDao,
+    private val preferencesRepository: PreferencesRepository,
     @param:ApplicationContext private val context: Context
 ) {
 
-    suspend fun syncQuestions(url: String) {
+    private val _appConfig = MutableStateFlow<AppConfig?>(null)
+    val appConfig = _appConfig.asStateFlow()
+
+    suspend fun syncConfig(url: String = "https://raw.githubusercontent.com/thumb2086/AcademicTycoon/main/app/src/main/assets/config.json") {
         if (isNetworkAvailable()) {
             try {
-                val bundle = apiService.getQuestions(url)
-                questionDao.clearAndInsert(bundle.questions) // Clear old questions before inserting new ones
+                _appConfig.value = apiService.getConfig(url)
             } catch (e: Exception) {
-                // Handle network error, e.g., by logging
-                e.printStackTrace()
+                Log.e("SyncRepository", "Failed to fetch remote config", e)
+            }
+        }
+    }
+
+    suspend fun syncQuestions() {
+        if (!isNetworkAvailable()) {
+            println("No network connection, skipping question sync.")
+            return
+        }
+        
+        val remoteConfig = appConfig.value ?: return
+        val remoteVersion = remoteConfig.bundle_version
+        val localVersion = preferencesRepository.bundleVersion.first()
+
+        if (remoteVersion > localVersion) {
+            Log.d("SyncRepository", "New bundle version found: $remoteVersion. Local was: $localVersion. Syncing...")
+            try {
+                val bundle = apiService.getQuestions(remoteConfig.bundle_url)
+                questionDao.clearAndInsert(bundle.questions)
+                preferencesRepository.updateBundleVersion(remoteVersion)
+                Log.d("SyncRepository", "Sync successful.")
+            } catch (e: Exception) {
+                Log.e("SyncRepository", "Failed to sync questions", e)
             }
         } else {
-            // No network, do nothing, rely on existing Room data
-            println("No network connection. Using cached questions.")
+            Log.d("SyncRepository", "Questions are up to date. Local version: $localVersion, Remote version: $remoteVersion")
         }
     }
 

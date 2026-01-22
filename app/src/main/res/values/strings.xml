@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">AcademicTycoon</string>
+
+    <!-- Black Market Screen -->
+    <string name="black_market_bank">黑市銀行</string>
+    <string name="current_assets">目前資產: %1$s</string>
+    <string name="current_debt">目前負債: %1$s</string>
+    <string name="need_cash">手頭緊嗎？</string>
+    <string name="borrow_amount">借款 %1$s</string>
+    <string name="wanna_repay">想還錢了？</string>
+    <string name="repay_amount">還款金額</string>
+    <string name="confirm_repayment">確認還款</string>
 </resources>

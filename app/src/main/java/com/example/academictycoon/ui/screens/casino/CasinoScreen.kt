@@ -11,10 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.academictycoon.ui.FinanceViewModel
+import com.example.academictycoon.ui.navigation.Screen
 
 @Composable
 fun CasinoScreen(
+    navController: NavController, // Added NavController for navigation
     casinoViewModel: CasinoViewModel = hiltViewModel(),
     financeViewModel: FinanceViewModel = hiltViewModel()
 ) {
@@ -24,46 +27,59 @@ fun CasinoScreen(
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceEvenly
+        verticalArrangement = Arrangement.SpaceBetween // Changed arrangement
     ) {
-        // Dealer's Hand
-        HandView(title = "Dealer's Hand", cards = uiState.dealerHand, isDealer = true, gameState = uiState.gameState)
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            // Dealer's Hand
+            HandView(title = "Dealer's Hand", cards = uiState.dealerHand, isDealer = true, gameState = uiState.gameState)
 
-        // Player's Hand
-        HandView(title = "Your Hand", cards = uiState.playerHand)
+            // Player's Hand
+            HandView(title = "Your Hand", cards = uiState.playerHand)
+        }
 
         // Game Status & Actions
-        if (uiState.gameState == GameState.GAME_OVER) {
-            Text(text = uiState.gameResult, modifier = Modifier.padding(bottom = 16.dp))
-            Button(onClick = {
-                val winnings = casinoViewModel.getWinnings()
-                if (winnings > 0) {
-                    financeViewModel.processReward(winnings.toInt())
+        when (uiState.gameState) {
+            GameState.GAME_OVER -> {
+                Text(text = uiState.gameResult, modifier = Modifier.padding(bottom = 16.dp))
+                Button(onClick = {
+                    val bet = uiState.betAmount
+                    when {
+                        uiState.gameResult.contains("Win") -> financeViewModel.handleCasinoWin(bet)
+                        uiState.gameResult.contains("Push") -> financeViewModel.returnBet(bet)
+                        // If loss, bet is already deducted, do nothing.
+                    }
+                    casinoViewModel.endRound()
+                }) {
+                    Text("New Round")
                 }
-                casinoViewModel.endRound()
-            }) {
-                Text("New Round")
             }
-        } else if (uiState.gameState == GameState.BETTING) {
-            Button(onClick = {
-                userProfile?.let { profile ->
-                    if (profile.balance >= uiState.betAmount) {
-                        financeViewModel.deductBet(uiState.betAmount)
-                        casinoViewModel.placeBet(profile) { /* The financial transaction is now handled by the screen */ }
+            GameState.BETTING -> {
+                Button(onClick = {
+                    userProfile?.let { profile ->
+                        if (profile.balance >= uiState.betAmount) {
+                            financeViewModel.deductBet(uiState.betAmount)
+                            casinoViewModel.placeBet()
+                        }
+                    }
+                }) {
+                    Text("Place Bet: ${uiState.betAmount}")
+                }
+            }
+            else -> {
+                Row {
+                    Button(onClick = { casinoViewModel.hit() }, modifier = Modifier.padding(end = 8.dp)) {
+                        Text("Hit")
+                    }
+                    Button(onClick = { casinoViewModel.stand() }) {
+                        Text("Stand")
                     }
                 }
-            }) {
-                Text("Place Bet: ${uiState.betAmount}")
             }
-        } else {
-            Row {
-                Button(onClick = { casinoViewModel.hit() }, modifier = Modifier.padding(end = 8.dp)) {
-                    Text("Hit")
-                }
-                Button(onClick = { casinoViewModel.stand() }) {
-                    Text("Stand")
-                }
-            }
+        }
+        
+        // Navigation to other games
+        Button(onClick = { navController.navigate(Screen.Roulette.route) }) {
+            Text("前往輪盤賭")
         }
     }
 }
