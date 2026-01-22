@@ -74,7 +74,7 @@
     - [x] 去 https://console.firebase.google.com 建立新專案，註冊 Android App（輸入 package name），下載 google-services.json 放 app/ 目錄。
     - [x] 在 project-level build.gradle.kts 加 Google Services plugin。
     - [x] 在 app/build.gradle.kts 加 Firebase BoM + 必要 SDK（firebase-auth, firebase-firestore, firebase-remote-config, firebase-analytics）。
-    - [ ] 在 Application class 或 MainActivity 初始化 FirebaseApp。
+    - [x] 在 Application class 或 MainActivity 初始化 FirebaseApp。
 
 - [ ] 玩家登入與資料雲端化
     - [ ] 啟用 Firebase Authentication：Email/Password + Google Sign-In。

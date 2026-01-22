@@ -3,7 +3,9 @@
 - **Gradle 配置 (`build.gradle.kts`, `libs.versions.toml`):**
     - **依賴管理:** 在 `libs.versions.toml` 中新增了 `firebase-bom` 以及 `firebase-auth`、`firebase-firestore`、`firebase-config`、`firebase-analytics` 的函式庫定義。
     - **插件整合:** 成功在專案和 App 層級的 `build.gradle.kts` 中加入了 `com.google.gms.google-services` 插件，並完成 Gradle 同步。
-- **專案狀態:** 已成功將 Firebase 核心 SDK 整合到專案中，為後續的雲端功能（如玩家登入、資料同步、遠端配置）打下了基礎。
+- **初始化 (`AcademicTycoonApplication.kt`):**
+    - 在自定的 `Application` 類別的 `onCreate` 方法中呼叫了 `FirebaseApp.initializeApp(this)`，確保 Firebase 在 App 啟動時就已準備就緒。
+- **專案狀態:** 已成功將 Firebase 核心 SDK 整合到專案中，並完成了初始化，為後續的雲端功能（如玩家登入、資料同步、遠端配置）打下了基礎。
 
 ### v0.3: 考題資料集自動下載熱更新
 
