@@ -4,7 +4,6 @@ import java.io.FileInputStream
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
@@ -26,11 +25,11 @@ android {
         }
     }
 
-    namespace = "com.example.academictycoon"
+    namespace = "com.tycoon.academic"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.academictycoon"
+        applicationId = "com.tycoon.academic"
         minSdk = 29
         targetSdk = 36
         versionCode = 1
@@ -52,6 +51,10 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
 }
 
