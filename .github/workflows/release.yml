@@ -3,7 +3,7 @@ name: Android Release CI/CD
 on:
   push:
     tags:
-      - 'v*' # 當推送 v1.0, v2.0 等標籤時觸發
+      - 'v*'
 
 jobs:
   build:
@@ -22,15 +22,15 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 1. 處理 Google Services JSON (從 GitHub Secrets 讀取)
+      # 1. 處理 Google Services JSON
       - name: Decode google-services.json
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
 
-      # 2. 處理 Keystore (從 GitHub Secrets 讀取並轉換回檔案)
+      # 2. 處理 Keystore (增加 --ignore-garbage 避免非法字元干擾)
       - name: Decode Keystore
-        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode --ignore-garbage > release.keystore
 
-      # 3. 建立 keystore.properties，並指向正確的 storeFile 路徑
+      # 3. 建立 keystore.properties
       - name: Create keystore.properties
         run: |
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" > keystore.properties
@@ -42,7 +42,7 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      # 5. 將 APK 上傳到 GitHub Release
+      # 5. 上傳 APK 到 GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')

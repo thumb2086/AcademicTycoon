@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.tycoon.academic" />
-                  <option name="mobileSdkAppId" value="1:651321880683:android:579cf2be45b0cecb07412e" />
-                  <option name="projectId" value="academictycoongame" />
-                  <option name="projectNumber" value="651321880683" />
+                  <option name="appId" value="PLACEHOLDER" />
+                  <option name="mobileSdkAppId" value="" />
+                  <option name="projectId" value="" />
+                  <option name="projectNumber" value="" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
