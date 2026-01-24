@@ -22,13 +22,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 1. 處理 Google Services JSON
+      # 1. 處理 Google Services JSON (改用 printf 避免 echo 換行問題)
       - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
+        run: |
+          printf "%s" "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode --ignore-garbage > app/google-services.json
+          # 驗證 JSON 格式是否正確 (若失敗會在此停止並報錯)
+          cat app/google-services.json | jq .
 
-      # 2. 處理 Keystore (增加 --ignore-garbage 避免非法字元干擾)
+      # 2. 處理 Keystore
       - name: Decode Keystore
-        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode --ignore-garbage > release.keystore
+        run: printf "%s" "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode --ignore-garbage > release.keystore
 
       # 3. 建立 keystore.properties
       - name: Create keystore.properties
