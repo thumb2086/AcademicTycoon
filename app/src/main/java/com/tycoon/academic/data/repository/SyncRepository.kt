@@ -5,61 +5,107 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import com.tycoon.academic.data.local.dao.QuestionDao
+import com.tycoon.academic.data.local.model.Question
 import com.tycoon.academic.data.network.ApiService
+import com.tycoon.academic.data.network.AppConfig
+import com.tycoon.academic.data.network.CasinoOdds
+import com.tycoon.academic.data.network.QuestionBundle
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.tycoon.academic.data.network.AppConfig // 增加這一行
 
 @Singleton
 class SyncRepository @Inject constructor(
     private val apiService: ApiService,
     private val questionDao: QuestionDao,
     private val preferencesRepository: PreferencesRepository,
+    private val remoteConfig: FirebaseRemoteConfig,
+    private val firestore: FirebaseFirestore,
     @param:ApplicationContext private val context: Context
 ) {
 
     private val _appConfig = MutableStateFlow<AppConfig?>(null)
     val appConfig = _appConfig.asStateFlow()
 
-    suspend fun syncConfig(url: String = "https://raw.githubusercontent.com/thumb2086/AcademicTycoon/main/app/src/main/assets/config.json") {
-        if (isNetworkAvailable()) {
-            try {
-                _appConfig.value = apiService.getConfig(url)
-            } catch (e: Exception) {
-                Log.e("SyncRepository", "Failed to fetch remote config", e)
-            }
+    suspend fun syncConfig() {
+        try {
+            remoteConfig.fetchAndActivate().await()
+            
+            val config = AppConfig(
+                bundleVersion = remoteConfig.getLong("bundle_version").toInt(),
+                bundleUrl = remoteConfig.getString("question_bundle_url"),
+                questionBundleUrl = remoteConfig.getString("question_bundle_url"),
+                casinoOdds = CasinoOdds(
+                    blackjackHouseEdge = remoteConfig.getDouble("blackjack_house_edge"),
+                    rewardMultiplier = remoteConfig.getDouble("reward_multiplier")
+                )
+            )
+            _appConfig.value = config
+            
+            syncQuestions()
+            
+            Log.d("SyncRepository", "Remote Config synced: $config")
+        } catch (e: Exception) {
+            Log.e("SyncRepository", "Failed to sync remote config", e)
         }
     }
 
     suspend fun syncQuestions() {
-        if (!isNetworkAvailable()) {
-            println("No network connection, skipping question sync.")
-            return
-        }
+        if (!isNetworkAvailable()) return
 
-        val remoteConfig = appConfig.value ?: return
-
-        // --- 修正點：將 snake_case 改為 camelCase ---
-        val remoteVersion = remoteConfig.bundleVersion // 修正: bundle_version -> bundleVersion
+        val config = _appConfig.value ?: return
+        val remoteVersion = config.bundleVersion
         val localVersion = preferencesRepository.bundleVersion.first()
 
         if (remoteVersion > localVersion) {
-            Log.d("SyncRepository", "New bundle version found: $remoteVersion. Local was: $localVersion. Syncing...")
+            Log.d("SyncRepository", "New bundle version: $remoteVersion. Syncing questions...")
             try {
-                // --- 修正點：將 snake_case 改為 camelCase ---
-                val bundle = apiService.getQuestions(remoteConfig.bundleUrl) // 修正: bundle_url -> bundleUrl
-                questionDao.clearAndInsert(bundle.questions)
-                preferencesRepository.updateBundleVersion(remoteVersion)
-                Log.d("SyncRepository", "Sync successful.")
+                val source = config.questionBundleUrl
+                
+                val questions = if (source.startsWith("http")) {
+                    // 方式 A: 從外部 URL 下載 (GitHub/Storage)
+                    apiService.getQuestions(source).questions
+                } else {
+                    // 方式 B: 直接從 Firestore 讀取 (source 即為 Firestore 中的 Document ID)
+                    fetchQuestionsFromFirestore(source)
+                }
+
+                if (questions != null) {
+                    questionDao.clearAndInsert(questions)
+                    preferencesRepository.updateBundleVersion(remoteVersion)
+                    Log.d("SyncRepository", "Question sync successful: ${questions.size} items.")
+                }
             } catch (e: Exception) {
                 Log.e("SyncRepository", "Failed to sync questions", e)
             }
-        } else {
-            Log.d("SyncRepository", "Questions are up to date. Local version: $localVersion, Remote version: $remoteVersion")
+        }
+    }
+
+    /**
+     * 從 Firestore 讀取題目包
+     * 預期結構: Collection "question_bundles" -> Document (ID 為 source) -> Field "questions" (Array)
+     */
+    private suspend fun fetchQuestionsFromFirestore(docId: String): List<Question>? {
+        return try {
+            val document = firestore.collection("question_bundles").document(docId).get().await()
+            if (document.exists()) {
+                // 將 Firestore 的 Data 轉換回 Question 列表
+                // 注意：Firestore 中的欄位名稱需與 Question 類別一致
+                val bundle = document.toObject(QuestionBundle::class.java)
+                bundle?.questions
+            } else {
+                Log.e("SyncRepository", "Firestore document not found: $docId")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("SyncRepository", "Error fetching from Firestore", e)
+            null
         }
     }
 

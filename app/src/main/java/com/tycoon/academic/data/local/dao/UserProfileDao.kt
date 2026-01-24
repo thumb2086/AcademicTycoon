@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.tycoon.academic.data.local.model.UserProfile
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserProfileDao {
@@ -14,4 +15,7 @@ interface UserProfileDao {
 
     @Query("SELECT * FROM user_profile WHERE id = 1")
     suspend fun getUserProfile(): UserProfile?
+
+    @Query("SELECT * FROM user_profile WHERE id = 1")
+    fun getUserProfileFlow(): Flow<UserProfile?>
 }

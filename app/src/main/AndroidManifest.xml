@@ -16,7 +16,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AcademicTycoon"
-        android:usesCleartextTraffic="true"> <!-- 這裡修正了點改冒號 -->
+        android:usesCleartextTraffic="true">
+
+        <!-- 停用預設的 WorkManager 初始化，因為我們使用了 Hilt 自定義初始化 -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
         <activity
             android:name="com.tycoon.academic.MainActivity"

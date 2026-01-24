@@ -11,6 +11,7 @@ import com.tycoon.academic.data.network.ApiService
 import com.tycoon.academic.data.network.QuestionBundle
 import com.tycoon.academic.data.repository.QuestionRepository
 import com.tycoon.academic.data.repository.UserRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -84,13 +85,20 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(userProfileDao: UserProfileDao): UserRepository {
-        return UserRepository(userProfileDao)
+    fun provideUserRepository(
+        firestore: FirebaseFirestore,
+        userProfileDao: UserProfileDao
+    ): UserRepository {
+        return UserRepository(firestore, userProfileDao)
     }
 
     @Provides
     @Singleton
-    fun provideQuestionRepository(apiService: ApiService, questionDao: QuestionDao): QuestionRepository {
-        return QuestionRepository(apiService, questionDao)
+    fun provideQuestionRepository(
+        apiService: ApiService, 
+        questionDao: QuestionDao,
+        @ApplicationContext context: Context
+    ): QuestionRepository {
+        return QuestionRepository(apiService, questionDao, context)
     }
 }

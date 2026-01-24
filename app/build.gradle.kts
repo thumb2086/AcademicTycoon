@@ -10,26 +10,22 @@ plugins {
 }
 
 android {
-    // 註解掉這段，避免尋找不存在的屬性文件
-    /*
+    // 讀取簽署屬性文件
     val keystorePropertiesFile = rootProject.file("keystore.properties")
     val keystoreProperties = Properties()
     if (keystorePropertiesFile.exists()) {
         keystoreProperties.load(FileInputStream(keystorePropertiesFile))
     }
-    */
 
-    // 註解掉自定義的簽署配置，讓系統使用預設的 Debug 配置
-    /*
     signingConfigs {
         create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias")
             keyPassword = keystoreProperties.getProperty("keyPassword")
-            storeFile = file(keystoreProperties.getProperty("storeFile"))
+            // 這裡指向您專案根目錄的 release.keystore
+            storeFile = file("../release.keystore") 
             storePassword = keystoreProperties.getProperty("storePassword")
         }
     }
-    */
 
     namespace = "com.tycoon.academic"
     compileSdk = 35
@@ -47,12 +43,17 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // 重新啟用 release 簽署
+            signingConfig = signingConfigs.getByName("release")
+            
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // 註解掉這一行，這行是導致「Missing keystore」的主因
-            // signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            // debug 也可以選擇使用 release 簽署，或者保持預設
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

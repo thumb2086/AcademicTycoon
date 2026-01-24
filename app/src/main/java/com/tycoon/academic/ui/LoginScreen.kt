@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -44,6 +45,8 @@ fun LoginScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
+            // 修正：隱藏密碼輸入
+            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -63,8 +66,15 @@ fun LoginScreen(
                 CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             }
             is AuthState.Error -> {
+                // 如果是網路錯誤，提醒檢查 Firebase SHA-1
+                val errorMessage = if (state.message.contains("network", ignoreCase = true)) {
+                    "${state.message}\n(請確認 Firebase Console 已註冊 Release SHA-1 指紋)"
+                } else {
+                    state.message
+                }
+                
                 Text(
-                    text = state.message,
+                    text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 16.dp)
                 )

@@ -1,9 +1,12 @@
 package com.tycoon.academic.ui.navigation
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -20,6 +23,7 @@ import com.tycoon.academic.ui.LoginScreen
 import com.tycoon.academic.ui.screens.MiningScreen
 import com.tycoon.academic.ui.screens.AchievementsScreen
 import com.tycoon.academic.ui.screens.BlackMarketScreen
+import com.tycoon.academic.ui.viewmodel.FinanceViewModel
 
 // 賭場相關畫面
 import com.tycoon.academic.ui.screens.casino.CasinoScreen
@@ -29,7 +33,8 @@ import com.tycoon.academic.ui.screens.casino.RouletteScreen
 fun AppNavigation(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    financeViewModel: FinanceViewModel = hiltViewModel()
 ) {
     val currentUser = authViewModel.getCurrentUser()
     val startDestination = if (currentUser != null) Screen.Mining.route else Screen.Login.route
@@ -37,6 +42,8 @@ fun AppNavigation(
     // 獲取當前路由狀態
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val userProfile by financeViewModel.userProfile.collectAsState()
 
     // 定義哪些頁面需要顯示底部導航列
     val bottomBarScreens = listOf(
@@ -47,8 +54,49 @@ fun AppNavigation(
     )
 
     Scaffold(
+        topBar = {
+            // 固定頂部狀態欄：顯示金額與債務，只在登入後顯示
+            if (currentRoute != Screen.Login.route) {
+                Surface(
+                    tonalElevation = 4.dp,
+                    shadowElevation = 2.dp,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "可用資金: $${userProfile?.balance ?: 0}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            if ((userProfile?.debt ?: 0L) > 0) {
+                                Text(
+                                    "剩餘債務: $${userProfile?.debt}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red
+                                )
+                            }
+                        }
+                        
+                        // 顯示頭銜
+                        Text(
+                            userProfile?.rank ?: "學術難民",
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+                    }
+                }
+            }
+        },
         bottomBar = {
-            // 只有在主功能頁面才顯示導航列（排除登入頁、輪盤頁等）
+            // 只有在主功能頁面才顯示導航列
             if (currentRoute in bottomBarScreens.map { it.route }) {
                 NavigationBar {
                     bottomBarScreens.forEach { screen ->
@@ -62,7 +110,6 @@ fun AppNavigation(
                             selected = currentRoute == screen.route,
                             onClick = {
                                 navController.navigate(screen.route) {
-                                    // 避免在 BackStack 中累積重複頁面
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }

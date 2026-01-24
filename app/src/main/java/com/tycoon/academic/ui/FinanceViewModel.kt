@@ -24,7 +24,7 @@ class FinanceViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             syncRepository.syncConfig()
-            _userProfile.value = userProfileDao.getUserProfile() ?: UserProfile(balance = 1000, debt = 0, correct_count = 0, rank = "學術難民")
+            _userProfile.value = userProfileDao.getUserProfile() ?: UserProfile(balance = 1000, debt = 0, rank = "學術難民")
         }
     }
 
@@ -49,11 +49,12 @@ class FinanceViewModel @Inject constructor(
         val currentProfile = _userProfile.value ?: return
         var updatedProfile = applyIncomeWithDebtRule(currentProfile, reward.toLong())
         
-        val newCorrectCount = currentProfile.correct_count + 1
+        val newCorrectCount = currentProfile.correct_answers_count + 1
         val newRank = getRank(newCorrectCount)
 
         updatedProfile = updatedProfile.copy(
-            correct_count = newCorrectCount,
+            correct_answers_count = newCorrectCount,
+            total_questions_answered = currentProfile.total_questions_answered + 1,
             rank = newRank
         )
         updateProfile(updatedProfile)
@@ -78,7 +79,10 @@ class FinanceViewModel @Inject constructor(
 
     fun deductBet(amount: Long) {
         val currentProfile = _userProfile.value ?: return
-        val updatedProfile = currentProfile.copy(balance = currentProfile.balance - amount)
+        val updatedProfile = currentProfile.copy(
+            balance = currentProfile.balance - amount,
+            total_bet_amount = currentProfile.total_bet_amount + amount
+        )
         updateProfile(updatedProfile)
     }
     
