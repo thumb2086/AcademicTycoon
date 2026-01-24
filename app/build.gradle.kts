@@ -21,8 +21,11 @@ android {
         create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias")
             keyPassword = keystoreProperties.getProperty("keyPassword")
-            // 這裡指向您專案根目錄的 release.keystore
-            storeFile = file("../release.keystore") 
+            
+            // 從 properties 讀取路徑，若無則預設指向根目錄的 release.keystore
+            val storePath = keystoreProperties.getProperty("storeFile") ?: "../release.keystore"
+            storeFile = file(storePath)
+            
             storePassword = keystoreProperties.getProperty("storePassword")
         }
     }
@@ -43,7 +46,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            // 重新啟用 release 簽署
+            // 啟用 release 簽署
             signingConfig = signingConfigs.getByName("release")
             
             proguardFiles(
@@ -52,7 +55,6 @@ android {
             )
         }
         debug {
-            // debug 也可以選擇使用 release 簽署，或者保持預設
             signingConfig = signingConfigs.getByName("debug")
         }
     }

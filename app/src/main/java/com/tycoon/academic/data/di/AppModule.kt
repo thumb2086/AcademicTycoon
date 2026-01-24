@@ -11,6 +11,7 @@ import com.tycoon.academic.data.network.ApiService
 import com.tycoon.academic.data.network.QuestionBundle
 import com.tycoon.academic.data.repository.QuestionRepository
 import com.tycoon.academic.data.repository.UserRepository
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import dagger.Module
@@ -23,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.Executors
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -46,14 +46,13 @@ object AppModule {
         .addCallback(object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                // Pre-populate the database using a coroutine
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val jsonString = context.assets.open("bundle.json").bufferedReader().use { it.readText() }
                         val questionBundle = Gson().fromJson(jsonString, QuestionBundle::class.java)
                         questionDaoProvider.get().insertAll(questionBundle.questions)
                     } catch (e: Exception) {
-                        // Handle exceptions, e.g., file not found or JSON parsing error
+                        e.printStackTrace()
                     }
                 }
             }
@@ -87,9 +86,10 @@ object AppModule {
     @Singleton
     fun provideUserRepository(
         firestore: FirebaseFirestore,
+        auth: FirebaseAuth,
         userProfileDao: UserProfileDao
     ): UserRepository {
-        return UserRepository(firestore, userProfileDao)
+        return UserRepository(firestore, auth, userProfileDao)
     }
 
     @Provides

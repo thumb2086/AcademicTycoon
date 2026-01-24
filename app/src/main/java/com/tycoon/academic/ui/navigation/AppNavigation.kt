@@ -56,41 +56,56 @@ fun AppNavigation(
     Scaffold(
         topBar = {
             // 固定頂部狀態欄：顯示金額與債務，只在登入後顯示
-            if (currentRoute != Screen.Login.route) {
+            if (currentRoute != null && currentRoute != Screen.Login.route) {
                 Surface(
-                    tonalElevation = 4.dp,
-                    shadowElevation = 2.dp,
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    tonalElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .statusBarsPadding() // 重要：避開系統狀態列（時間、電量）
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
-                        Column {
-                            Text(
-                                "可用資金: $${userProfile?.balance ?: 0}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            if ((userProfile?.debt ?: 0L) > 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
                                 Text(
-                                    "剩餘債務: $${userProfile?.debt}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Red
+                                    "可用資金: $${userProfile?.balance ?: 0}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if ((userProfile?.debt ?: 0L) > 0) {
+                                    Text(
+                                        "剩餘債務: $${userProfile?.debt}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.Red
+                                    )
+                                }
+                            }
+                            
+                            // 顯示頭銜
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    userProfile?.rank ?: "學術難民",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
                         }
-                        
-                        // 顯示頭銜
-                        Text(
-                            userProfile?.rank ?: "學術難民",
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                        // 加入底部分隔線，增強控制台質感
+                        HorizontalDivider(
+                            modifier = Modifier.padding(top = 8.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
                     }
                 }
             }
@@ -98,7 +113,10 @@ fun AppNavigation(
         bottomBar = {
             // 只有在主功能頁面才顯示導航列
             if (currentRoute in bottomBarScreens.map { it.route }) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp
+                ) {
                     bottomBarScreens.forEach { screen ->
                         NavigationBarItem(
                             icon = { 
@@ -108,6 +126,10 @@ fun AppNavigation(
                                 screen.title?.let { Text(it) } 
                             },
                             selected = currentRoute == screen.route,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                indicatorColor = MaterialTheme.colorScheme.primary
+                            ),
                             onClick = {
                                 navController.navigate(screen.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {

@@ -46,6 +46,22 @@ class FinanceViewModel @Inject constructor(
     }
 
     /**
+     * 根據答對題數計算頭銜
+     */
+    private fun calculateRank(correctCount: Int): String {
+        return when {
+            correctCount >= 1000 -> "諾貝爾獎得主"
+            correctCount >= 500 -> "終身教授"
+            correctCount >= 250 -> "正教授"
+            correctCount >= 100 -> "副教授"
+            correctCount >= 50 -> "助理教授"
+            correctCount >= 20 -> "博士候選人"
+            correctCount >= 5 -> "研究生"
+            else -> "學術難民"
+        }
+    }
+
+    /**
      * 更新分析數據 (答對率與博弈紀錄)
      */
     private fun updateAnalytics(
@@ -59,9 +75,11 @@ class FinanceViewModel @Inject constructor(
             var updated = user.copy(total_bet_amount = user.total_bet_amount + bet)
             
             if (isCorrect != null) {
+                val newCorrectCount = if (isCorrect) user.correct_answers_count + 1 else user.correct_answers_count
                 updated = updated.copy(
                     total_questions_answered = user.total_questions_answered + 1,
-                    correct_answers_count = if (isCorrect) user.correct_answers_count + 1 else user.correct_answers_count
+                    correct_answers_count = newCorrectCount,
+                    rank = calculateRank(newCorrectCount) // 實作頭銜提升邏輯
                 )
             }
             
@@ -101,7 +119,10 @@ class FinanceViewModel @Inject constructor(
         viewModelScope.launch {
             val user = userRepository.getUserProfile() ?: return@launch
             
-            if (fromQuestion) updateAnalytics(isCorrect = true)
+            // 如果是答對題目獲得獎勵，觸發分析更新（含頭銜提升）
+            if (fromQuestion) {
+                updateAnalytics(isCorrect = true)
+            }
 
             if (user.debt > 0) {
                 val payBack = (reward * 0.8).toLong()

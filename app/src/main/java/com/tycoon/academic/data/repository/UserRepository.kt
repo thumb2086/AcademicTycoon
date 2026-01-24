@@ -1,5 +1,6 @@
 package com.tycoon.academic.data.repository
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tycoon.academic.data.local.dao.UserProfileDao
 import com.tycoon.academic.data.local.model.UserProfile
@@ -9,6 +10,7 @@ import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth,
     private val userProfileDao: UserProfileDao
 ) {
 
@@ -16,9 +18,27 @@ class UserRepository @Inject constructor(
 
     suspend fun getUserProfile(): UserProfile? = userProfileDao.getUserProfile()
 
+    /**
+     * 更新使用者資料，同時同步至 Room 與 Firestore
+     */
     suspend fun updateUserProfile(userProfile: UserProfile) {
+        // 1. 更新本地資料庫
         userProfileDao.insertOrUpdate(userProfile)
-        // 同步到雲端 (如果 UID 已知，這裡可以擴充同步邏輯)
+        
+        // 2. 同步至 Firebase Firestore (若已登入)
+        val uid = auth.currentUser?.uid
+        if (uid != null) {
+            try {
+                // 將 UserProfile 轉換為 Map 以便 Firestore 存儲，或直接傳入對象
+                // 排除 Room 的 id 欄位或將其作為文檔一部分
+                firestore.collection("users").document(uid)
+                    .set(userProfile)
+                    .await()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // 雲端同步失敗時，至少本地已有資料
+            }
+        }
     }
 
     /**
