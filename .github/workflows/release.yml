@@ -42,7 +42,7 @@ jobs:
             echo "Error: RELEASE_KEYSTORE_BASE64 secret is empty!"
             exit 1
           fi
-          # 使用 printf 避免 echo 可能產生的換行符號問題，確保 binary 數據完整性
+          # 使用 printf 確保 binary 數據完整性
           printf "%s" "$KEYSTORE_BASE64" | base64 --decode --ignore-garbage > release.keystore
           
           if [ ! -s release.keystore ]; then
@@ -50,17 +50,24 @@ jobs:
             exit 1
           fi
 
-      # 3. 建立 keystore.properties (使用 env 避免特殊字元問題)
+      # 3. 建立 keystore.properties (全面改用 printf 以防止 Shell 誤解析密碼中的特殊字元)
       - name: Create keystore.properties
         env:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: |
-          echo "keyAlias=$KEY_ALIAS" > keystore.properties
-          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
-          echo "storeFile=../release.keystore" >> keystore.properties
-          echo "storePassword=$STORE_PASSWORD" >> keystore.properties
+          # 使用 printf "%s\n" 確保字串被原樣寫入，不被 Shell 當作指令解析
+          printf "keyAlias=%s\n" "$KEY_ALIAS" > keystore.properties
+          printf "keyPassword=%s\n" "$KEY_PASSWORD" >> keystore.properties
+          printf "storeFile=../release.keystore\n" >> keystore.properties
+          printf "storePassword=%s\n" "$STORE_PASSWORD" >> keystore.properties
+          
+          # 檢查檔案內容是否包含必要欄位 (不打印內容以防洩漏)
+          if ! grep -q "keyAlias=" keystore.properties; then
+            echo "Error: Failed to create keystore.properties correctly!"
+            exit 1
+          fi
 
       # 4. 編譯 Release APK
       - name: Build Release APK

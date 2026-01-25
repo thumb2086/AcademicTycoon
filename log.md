@@ -1,10 +1,7 @@
-### v0.8.1: CI/CD 安全性增強與中斷排除
+### v0.8.3: 修正 CI/CD 發布權限 (403 Forbidden)
 
-- **自動化檢查機制 (`release.yml`):**
-    - **強化 Secret 校驗:** 實作了嚴格的 `[ -z "$VAR" ]` 檢查。目前的 Build 失敗是由於 GitHub 端的 `RELEASE_KEYSTORE_BASE64` 遺失或未正確載入，已成功防止產生損壞的 APK。
-- **文件維護:** 更新 `AGENT.md` 規範，確保未來所有 Secret 處理均包含判空邏輯。
+- **Workflow 權限提升 (`release.yml`):**
+    - **明確授權:** 在 YAML 中加入了 `permissions: contents: write`，解決 `Resource not accessible by integration` 錯誤。現在編譯完成後，Workflow 將有權限自動在 GitHub 建立 Release 並附加 APK。
 
-### v0.8: CI/CD 自動化發布修復
-
-- **簽署流程優化:** 修復了 `Tag number over 30` 的 ASN.1 解碼錯誤。
+### v0.8.2: 修正簽署屬性寫入邏輯
 ...
