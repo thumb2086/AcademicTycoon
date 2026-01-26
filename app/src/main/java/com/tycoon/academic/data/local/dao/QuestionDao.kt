@@ -6,11 +6,18 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.tycoon.academic.data.local.model.Question
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface QuestionDao {
-    @Query("SELECT * FROM questions") // 確保 table 名稱跟你的 Entity 定義一致
+    @Query("SELECT * FROM questions")
+    fun getAllQuestionsFlow(): Flow<List<Question>>
+
+    @Query("SELECT * FROM questions")
     suspend fun getAllQuestions(): List<Question>
+
+    @Query("SELECT COUNT(*) FROM questions")
+    suspend fun getQuestionCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(questions: List<Question>)

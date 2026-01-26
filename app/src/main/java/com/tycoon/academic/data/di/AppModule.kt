@@ -3,28 +3,21 @@ package com.tycoon.academic.data.di
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.tycoon.academic.data.local.AppDatabase
 import com.tycoon.academic.data.local.dao.QuestionDao
 import com.tycoon.academic.data.local.dao.UserProfileDao
 import com.tycoon.academic.data.network.ApiService
-import com.tycoon.academic.data.network.QuestionBundle
 import com.tycoon.academic.data.repository.QuestionRepository
 import com.tycoon.academic.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module
@@ -34,8 +27,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppDatabase(
-        @ApplicationContext context: Context,
-        questionDaoProvider: Provider<QuestionDao>
+        @ApplicationContext context: Context
     ): AppDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
@@ -43,20 +35,8 @@ object AppModule {
             "academic_tycoon_db"
         )
         .fallbackToDestructiveMigration()
-        .addCallback(object : RoomDatabase.Callback() {
-            override fun onCreate(db: SupportSQLiteDatabase) {
-                super.onCreate(db)
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val jsonString = context.assets.open("bundle.json").bufferedReader().use { it.readText() }
-                        val questionBundle = Gson().fromJson(jsonString, QuestionBundle::class.java)
-                        questionDaoProvider.get().insertAll(questionBundle.questions)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }).build()
+        .build()
+        // 移除了 onCreate 中的 Assets 預載入邏輯，現在完全由遠端同步
     }
 
     @Provides
@@ -95,10 +75,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideQuestionRepository(
-        apiService: ApiService, 
-        questionDao: QuestionDao,
-        @ApplicationContext context: Context
+        questionDao: QuestionDao
     ): QuestionRepository {
-        return QuestionRepository(apiService, questionDao, context)
+        return QuestionRepository(questionDao)
     }
 }

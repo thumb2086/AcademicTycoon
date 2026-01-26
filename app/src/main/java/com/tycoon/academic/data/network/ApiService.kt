@@ -10,17 +10,25 @@ data class QuestionBundle(
     val questions: List<Question>
 )
 
+data class DataBundle(
+    val id: String,
+    val name: String,
+    @SerializedName("file_name") val fileName: String,
+    val url: String,
+    @SerializedName("updated_at") val updatedAt: String
+)
+
 data class CasinoOdds(
     @SerializedName("blackjack_house_edge") val blackjackHouseEdge: Double,
     @SerializedName("reward_multiplier") val rewardMultiplier: Double
 )
 
-// 合併所有欄位的 AppConfig
+// 更新後的 AppConfig，符合新的 config.json 結構
 data class AppConfig(
-    @SerializedName("bundle_version") val bundleVersion: Int,    // 補上 SyncRepository 需要的
-    @SerializedName("bundle_url") val bundleUrl: String,        // 補上 SyncRepository 需要的
-    @SerializedName("question_bundle_url") val questionBundleUrl: String,
-    @SerializedName("casino_odds") val casinoOdds: CasinoOdds
+    @SerializedName("app_version_required") val appVersionRequired: String? = null,
+    @SerializedName("data_version") val dataVersion: Int = 0,
+    val bundles: List<DataBundle> = emptyList(),
+    @SerializedName("casino_odds") val casinoOdds: CasinoOdds? = null
 )
 
 interface ApiService {

@@ -18,7 +18,6 @@ class FinanceViewModel @Inject constructor(
     private val syncRepository: SyncRepository
 ) : ViewModel() {
 
-    // 訂閱雲端配置 (包含難度、倍率、活動參數)
     val appConfig = syncRepository.appConfig
 
     val userProfile: StateFlow<UserProfile?> = userRepository.getUserProfileFlow()
@@ -30,7 +29,7 @@ class FinanceViewModel @Inject constructor(
 
     init {
         ensureUserExists()
-        // 啟動時同步雲端配置
+        // 啟動時強制進行一次遠端同步，確保提取 GitHub 上的新題庫
         viewModelScope.launch {
             syncRepository.syncConfig()
         }
@@ -44,10 +43,37 @@ class FinanceViewModel @Inject constructor(
             }
         }
     }
+    
+    // ... 其餘財務與頭銜計算邏輯保持不變 ...
+    
+    fun addReward(reward: Long, fromQuestion: Boolean = false) {
+        viewModelScope.launch {
+            val user = userRepository.getUserProfile() ?: return@launch
+            
+            if (fromQuestion) {
+                updateAnalytics(isCorrect = true)
+            }
 
-    /**
-     * 根據答對題數計算頭銜
-     */
+            if (user.debt > 0) {
+                val payBack = (reward * 0.8).toLong()
+                val pocket = (reward * 0.2).toLong()
+                var remainingDebt = user.debt - payBack
+                var finalBalance = user.balance + pocket
+                if (remainingDebt < 0) {
+                    finalBalance += (-remainingDebt)
+                    remainingDebt = 0
+                }
+                userRepository.updateUserProfile(user.copy(balance = finalBalance, debt = remainingDebt))
+            } else {
+                userRepository.updateUserProfile(user.copy(balance = user.balance + reward))
+            }
+        }
+    }
+
+    fun recordWrongAnswer() {
+        updateAnalytics(isCorrect = false)
+    }
+
     private fun calculateRank(correctCount: Int): String {
         return when {
             correctCount >= 1000 -> "諾貝爾獎得主"
@@ -61,15 +87,7 @@ class FinanceViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 更新分析數據 (答對率與博弈紀錄)
-     */
-    private fun updateAnalytics(
-        isCorrect: Boolean? = null, 
-        isWin: Boolean? = null, 
-        gameType: String? = null,
-        bet: Long = 0
-    ) {
+    private fun updateAnalytics(isCorrect: Boolean? = null, isWin: Boolean? = null, gameType: String? = null, bet: Long = 0) {
         viewModelScope.launch {
             val user = userRepository.getUserProfile() ?: return@launch
             var updated = user.copy(total_bet_amount = user.total_bet_amount + bet)
@@ -79,16 +97,14 @@ class FinanceViewModel @Inject constructor(
                 updated = updated.copy(
                     total_questions_answered = user.total_questions_answered + 1,
                     correct_answers_count = newCorrectCount,
-                    rank = calculateRank(newCorrectCount) // 實作頭銜提升邏輯
+                    rank = calculateRank(newCorrectCount)
                 )
             }
             
             if (isWin != null && gameType != null) {
                 updated = when (gameType) {
-                    "blackjack" -> if (isWin) updated.copy(blackjack_wins = user.blackjack_wins + 1) 
-                                   else updated.copy(blackjack_losses = user.blackjack_losses + 1)
-                    "roulette" -> if (isWin) updated.copy(roulette_wins = user.roulette_wins + 1)
-                                   else updated.copy(roulette_losses = user.roulette_losses + 1)
+                    "blackjack" -> if (isWin) updated.copy(blackjack_wins = user.blackjack_wins + 1) else updated.copy(blackjack_losses = user.blackjack_losses + 1)
+                    "roulette" -> if (isWin) updated.copy(roulette_wins = user.roulette_wins + 1) else updated.copy(roulette_losses = user.roulette_losses + 1)
                     else -> updated
                 }
             }
@@ -113,35 +129,6 @@ class FinanceViewModel @Inject constructor(
         } else {
             updateAnalytics(isWin = false, gameType = gameType)
         }
-    }
-
-    fun addReward(reward: Long, fromQuestion: Boolean = false) {
-        viewModelScope.launch {
-            val user = userRepository.getUserProfile() ?: return@launch
-            
-            // 如果是答對題目獲得獎勵，觸發分析更新（含頭銜提升）
-            if (fromQuestion) {
-                updateAnalytics(isCorrect = true)
-            }
-
-            if (user.debt > 0) {
-                val payBack = (reward * 0.8).toLong()
-                val pocket = (reward * 0.2).toLong()
-                var remainingDebt = user.debt - payBack
-                var finalBalance = user.balance + pocket
-                if (remainingDebt < 0) {
-                    finalBalance += (-remainingDebt)
-                    remainingDebt = 0
-                }
-                userRepository.updateUserProfile(user.copy(balance = finalBalance, debt = remainingDebt))
-            } else {
-                userRepository.updateUserProfile(user.copy(balance = user.balance + reward))
-            }
-        }
-    }
-    
-    fun recordWrongAnswer() {
-        updateAnalytics(isCorrect = false)
     }
 
     fun borrow(amount: Long) = viewModelScope.launch {
